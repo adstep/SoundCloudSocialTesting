@@ -13,6 +13,22 @@ exports.User = function (p_name, p_id) {
 	this._addedTracks = [];
 }
 
+/**
+ * RoomState represents the current state of a room 
+ * and is intended to be passed to clients for them
+ * to update the views accordingly.
+ * @constructor
+ */
+function RoomState(p_name) {
+	this.name = p_name;
+	this.lastAction = "";
+	this.users = new sets.Set();
+	this.trackQueue = new Queue();
+	this.bootVotes = new sets.Set();
+}
+
+exports.RoomState = RoomState;
+
 exports.User.prototype = UserPrototype;
 
 var RoomPrototype = {
@@ -21,7 +37,6 @@ var RoomPrototype = {
 		if(this._state.users.has(user)) {
 			this._onChange(null, 'User already exists in room!');
 		} else {
-			console.log(user.name);
 			this._state.users.add(user);
 			this._onChange(this._state, null);
 		}
@@ -47,32 +62,32 @@ var RoomPrototype = {
 			this._onChange(null, 'User already voted to boot!');
 		} else if(!this._state.trackQueue.isEmpty()) {
 			this._state.bootVotes.add(user.id);
-
-			if(this._state.bootVotes.size >=
-			   Math.ceil(this._state.users.size / 2)) {
-				nextTrack()
+			
+			if(this._state.bootVotes.size() >=
+			   Math.ceil(this._state.users.size() / 2)) {
+				this.nextTrack()
+			} else {
+				this._onChange(this._state, null);
 			}
-
-			this._onChange(this._state, null);
 		}
 	},
 
 	// Adds the track to the room's track queue
 	addTrack: function (user, track) {
-		this.trackQueue.enqueue(track);
-		this._onChange(state, null);
+		this._state.trackQueue.enqueue(track);
+		this._onChange(this._state, null);
 	},
 
 	// Removes the head of the room's track queue
 	// and clears any votes for the song.
 	nextTrack: function () {
-		this.bootVotes.clear();
+		this._state.bootVotes = new sets.Set();
 
-		if(this.trackQueue.isEmpty()) {
+		if(this._state.trackQueue.isEmpty()) {
 			this._onChange(null, 'TrackQueue is empty!');
 		} else {
-			this.trackQueue.dequeue();
-			this._onChange(state, null);
+			this._state.trackQueue.dequeue();
+			this._onChange(this._state, null);
 		}
 	}
 }
@@ -92,20 +107,6 @@ exports.Room = function(p_name, p_id, p_onChange) {
 };
 
 exports.Room.prototype = RoomPrototype;
-
-/**
- * RoomState represents the current state of a room 
- * and is intended to be passed to clients for them
- * to update the views accordingly.
- * @constructor
- */
-function RoomState(p_name) {
-	this.name = p_name;
-	this.lastAction = "";
-	this.users = new sets.Set();
-	this.trackQueue = new Queue();
-	this.bootVotes = new sets.Set();
-}
 
 function Queue(){
   var queue  = [];
@@ -140,3 +141,5 @@ function Queue(){
     return (queue.length > 0 ? queue[offset] : undefined);
   }
 }
+
+exports.Queue = Queue;
