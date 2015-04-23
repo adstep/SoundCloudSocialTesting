@@ -5,6 +5,8 @@
   "main": "server.js",
   "dependencies": { 
   	"simplesets": "1.2.0",
-  	"should": "6.0.1"
+  	"should": "6.0.1",
+  	"socket.io": "1.3.5",
+  	"underscore": "1.8.3"
    }
 }

@@ -1,4 +1,5 @@
 var sets = require('simplesets');
+var _ = require('underscore')._;
 
 var UserPrototype = {
 	// Adds a track to the list of user added tracks
@@ -89,6 +90,36 @@ var RoomPrototype = {
 			this._state.trackQueue.dequeue();
 			this._onChange(this._state, null);
 		}
+	},
+
+	getUniqueName: function(possName) {
+		var exists = false;
+		var proposedName = possName;
+
+		_.find(this._state.users.array(), function(key, value) {
+			if(key.name.toLowerCase() === possName.toLowerCase()) {
+				return exists = true;
+			}
+		});
+
+		if(exists) {
+			var seed = Math.floor(Math.random()*1001);
+			do {
+				proposedName = possName + seed;
+
+				_.find(this._state.users.array(), function(key, value) {
+					if(key.name.toLowerCase() === proposedName.toLowerCase()) {
+						return exists = true;
+					}
+				});				
+			} while(exists);
+		}
+
+		return proposedName;
+	},
+
+	getRoomState: function() {
+		return this._state;
 	}
 }
 
